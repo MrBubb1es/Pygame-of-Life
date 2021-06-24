@@ -20,19 +20,34 @@ def drawGame(board, game_surface):
     game_surface.blit(board_surface, (0,0))
 
 
-
-
 def drawScreen(board, screen):
     screen_width, screen_height = pygame.display.get_surface().get_size()
+
+    """
     toolbar_height = max(round(screen_height * toolbar_size), MIN_TB_HEIGHT)
     toolbar_surface = pygame.Surface((screen_width, toolbar_height))
-    game_surface = pygame.Surface((screen_width, screen_height - toolbar_height))
+    """
 
-    drawToolbar(toolbar_surface)
-    drawGame(board, game_surface)
+    #drawToolbar(toolbar_surface)
+    #drawGame(board, game_surface)
 
-    screen.blit(toolbar_surface, (0,0))
-    screen.blit(game_surface, (0,toolbar_height))
+    board_surface = pygame.Surface(BOARD_SIZE)
+
+    for k, y in enumerate(board):
+        for l, x in enumerate(y):
+            if (board[k][l] == 1):
+                board_surface.set_at((k, l), (255,255,255))
+            else:
+                board_surface.set_at((k, l), (0,0,0))
+
+    # Scale board_surface to fit the window
+    print(board_surface.get_size())
+    board_surface = pygame.transform.scale(board_surface, (screen_width, screen_height))
+    print(board_surface.get_size())
+
+    #screen.blit(toolbar_surface, (0,0))
+    screen.blit(board_surface, (0,0))
+    pygame.display.update()
 
 
 def printGame(board):
