@@ -1,5 +1,7 @@
 import pygame, random
 import concurrent.futures
+import numpy as np
+from numba import jit
 
 from config import *
 from graphics import *
@@ -14,17 +16,28 @@ clock = pygame.time.Clock()
 
 paused = True
 
+def randomizeBoard(board):
+    for row in board:
+        for x in range(len(row)):
+            row[x] = random.randint(0,1)
+
+    return board
+
+
 def newBoard():
-    return [[random.randint(0,1) for x in range(BOARD_SIZE[0])] for y in range(BOARD_SIZE[1])]
+    return np.array([[0 for _ in range(BOARD_SIZE[0])] for _ in range(BOARD_SIZE[1])])
+
 
 def main():
-    board = newBoard()
+    board = randomizeBoard(newBoard())
+    back = newBoard()
 
     running = True
     while running:
         drawScreen(board, screen)
-        board = update(board)
-        clock.tick(HZ)
+        back = update(board, back)
+        board, back = back, board
+        #clock.tick(HZ)
 
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -33,9 +46,9 @@ def main():
             elif event.type == VIDEORESIZE:
                 screen_size = (event.w, event.h)
 
-
     pygame.quit()
 
+@jit(nopython=True)
 def countNeighbors(board, x, y):
     aliveNeighbors = 0
     for i in range(x-1, x+2):
@@ -50,23 +63,28 @@ def countNeighbors(board, x, y):
                 aliveNeighbors += board[j][i]
     return aliveNeighbors
 
-
-def updateRow(board, y):
+@jit(nopython=True)
+def updateRow(board, back, j):
     for i in range(BOARD_SIZE[0]):
         neighbors = countNeighbors(board, i, j)
         if neighbors < 2 or neighbors >= 4: # under- or over-population
-            new[j][i] = 0 # update the back board
+            back[j][i] = 0 # update the back board
         elif neighbors == 3:
-            new[j][i] = 1
+            back[j][i] = 1
         else:
-            new[j][i] = board[j][i]
+            back[j][i] = board[j][i]
 
-def update(board):
-    new = newBoard()
+    return (j, back[j])
 
-    with concurrent.futures.ThreadPoolExecutable() as executor:
-        executor.map(updateRow, board, args=[board, ])
+def update(board, back):
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = [executor.submit(updateRow, board, back, j) for j in range(BOARD_SIZE[1])]
 
-    return new
+        for f in concurrent.futures.as_completed(results):
+            result = f.result()
+            back[result[0]] = result[1]
+
+    return back
+
 
 main()

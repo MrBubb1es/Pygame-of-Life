@@ -58,7 +58,7 @@ def hueToRGB(hue):
         B = round((60 - (hue - 300))/60 * 255)
         G = 0
     else:
-        print("Hue {} not within acceptable bounds of 0 to 360".format(hue))
+        #print("Hue {} not within acceptable bounds of 0 to 360".format(hue))
         R = 255
         G = 255
         B = 255
