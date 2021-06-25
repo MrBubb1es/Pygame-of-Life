@@ -1,9 +1,10 @@
+import pygame, random
+import concurrent.futures
+
 from config import *
 from graphics import *
 from math import floor
-import pygame, random
 from pygame.locals import *
-from numba import jit, cuda
 
 pygame.init()
 
@@ -49,18 +50,22 @@ def countNeighbors(board, x, y):
                 aliveNeighbors += board[j][i]
     return aliveNeighbors
 
-@jit(target="cuda")
+
+def updateRow(board, y):
+    for i in range(BOARD_SIZE[0]):
+        neighbors = countNeighbors(board, i, j)
+        if neighbors < 2 or neighbors >= 4: # under- or over-population
+            new[j][i] = 0 # update the back board
+        elif neighbors == 3:
+            new[j][i] = 1
+        else:
+            new[j][i] = board[j][i]
+
 def update(board):
     new = newBoard()
-    for j in range(BOARD_SIZE[1]):
-        for i in range(BOARD_SIZE[0]):
-            neighbors = countNeighbors(board, i, j)
-            if neighbors < 2 or neighbors >= 4: # under- or over-population
-                new[j][i] = 0 # update the back board
-            elif neighbors == 3:
-                new[j][i] = 1
-            else:
-                new[j][i] = board[j][i]
+
+    with concurrent.futures.ThreadPoolExecutable() as executor:
+        executor.map(updateRow, board, args=[board, ])
 
     return new
 
