@@ -14,8 +14,6 @@ screen_size = (SCREEN_WIDTH, SCREEN_HEIGHT)
 screen = pygame.display.set_mode(screen_size, RESIZABLE)
 clock = pygame.time.Clock()
 
-paused = True
-
 def randomizeBoard(board):
     for row in board:
         for x in range(len(row)):
@@ -23,21 +21,22 @@ def randomizeBoard(board):
 
     return board
 
-
-def newBoard():
-    return np.array([[0 for _ in range(BOARD_SIZE[0])] for _ in range(BOARD_SIZE[1])])
-
+def newBoard(val):
+    return np.array([[val for _ in range(BOARD_SIZE[0])] for _ in range(BOARD_SIZE[1])])
 
 def main():
-    board = randomizeBoard(newBoard())
-    back = newBoard()
+    board = randomizeBoard(newBoard(0))
+    back = newBoard(0)
+    screen_size = pygame.display.get_surface().get_size()
+    paused = True
 
     running = True
     while running:
         drawScreen(board, screen)
-        back = update(board, back)
-        board, back = back, board
-        #clock.tick(HZ)
+
+        if not paused:
+            back = update(board, back)
+            board, back = back, board
 
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -45,6 +44,41 @@ def main():
 
             elif event.type == VIDEORESIZE:
                 screen_size = (event.w, event.h)
+
+            elif event.type == KEYDOWN:
+                if event.key == K_SPACE:
+                    paused = not paused
+
+        mouse_state = pygame.mouse.get_pressed()
+        # If left mouse clicked then fill the cell where the mouse is
+        if mouse_state[0]:
+            # If shift is held
+            if pygame.key.get_mods() & KMOD_SHIFT:
+                # Reset board
+                board = newBoard(1)
+
+            # Clear the cell where the mouse is
+            else:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                # Clamp mouse
+                mouse_x = max(min(mouse_x, screen_size[0]), 0)
+                mouse_y = max(min(mouse_y, screen_size[1]), 0)
+                board[floor(mouse_x / screen_size[0] * BOARD_SIZE[0])][floor(mouse_y / screen_size[1] * BOARD_SIZE[1])] = 1
+
+        # If right mouse clicked
+        if mouse_state[2]:
+            # If shift is held
+            if pygame.key.get_mods() & KMOD_SHIFT:
+                # Reset board
+                board = newBoard(0)
+
+            # Clear the cell where the mouse is
+            else:
+                mouse_x, mouse_y = pygame.mouse.get_pos()
+                # Clamp mouse
+                mouse_x = max(min(mouse_x, screen_size[0]), 0)
+                mouse_y = max(min(mouse_y, screen_size[1]), 0)
+                board[floor(mouse_x / screen_size[0] * BOARD_SIZE[0])][floor(mouse_y / screen_size[1] * BOARD_SIZE[1])] = 0
 
     pygame.quit()
 

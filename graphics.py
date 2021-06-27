@@ -1,25 +1,64 @@
 from config import *
 import pygame, math
+import numpy as np
+from numba import jit
 
 # Size as a percentage of the display size
 toolbar_size = .07
 scale_x, scale_y = BOARD_SIZE
 
-def drawToolbar(toolbar_surface):
-    pass
+"""def drawPaused(screen):
+    screen_width, screen_height = pygame.display.get_surface().get_size()
 
-def drawGame(board, game_surface):
-    board_surface = pygame.Surface(BOARD_SIZE)
+    pause_board = np.array([
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,1,1,1,1,1,0],
+        [0,1,0,1,0,0,0],
+        [0,1,1,1,0,0,0],
+        [0,0,0,0,0,0,0],
+        [0,1,1,1,1,1,0],
+        [0,1,0,1,0,0,0],
+        [0,1,1,1,1,1,0],
+        [0,0,0,0,0,0,0],
+        [0,1,1,1,1,0,0],
+        [0,0,0,0,0,1,0],
+        [0,1,1,1,1,1,0],
+        [0,0,0,0,0,0,0],
+        [0,0,1,1,0,1,0],
+        [0,1,0,1,0,1,0],
+        [0,1,0,1,1,0,0],
+        [0,0,0,0,0,0,0],
+        [0,1,1,1,1,1,0],
+        [0,1,0,1,0,1,0],
+        [0,1,0,0,0,1,0],
+        [0,0,0,0,0,0,0],
+        [0,1,1,1,1,1,0],
+        [0,1,0,0,0,1,0],
+        [0,0,1,1,1,1,0],
+        [0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0]
+    ])
+    pause_surface = pygame.Surface(pause_board.shape)
 
-    for k, y in enumerate(board):
+    for k, y in enumerate(pause_board):
         for l, x in enumerate(y):
-            board_surface.set_at((k, l), (x*255, x*255, x*255))
+            if (pause_board[k][l] == 1):
+                # 27 is the width of the pause_board array
+                color = hueToRGB(k / pause_board.shape[0] * 360)
+            else:
+                color = (0,0,0)
+            pause_surface.set_at((k,l), color)
 
-    # Scale board_surface to fit the window
-    board_surface = pygame.transform.scale(board_surface, game_surface.get_size())
-    game_surface.blit(board_surface, (0,0))
+    # Scale pause_surface to fit the window
+    pause_surface = pygame.transform.scale(pause_surface, (screen_width, screen_height))
+
+    screen.blit(pause_surface, (0,0))
+    pygame.display.update()"""
+
 
 # Reusing this from my sprite editor app
+@jit(nopython=True)
 def hueToRGB(hue):
     # 0 <= hue < 60: R = 255, B = 0, Solve for G
     # G starts at 0
